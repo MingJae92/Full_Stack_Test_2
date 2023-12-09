@@ -1,6 +1,8 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { readFileSync } from 'fs';
+import { ParsedQs } from 'qs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -8,35 +10,42 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = 4502;
 
-// Uncomment this line if you need to serve static files from a directory
-// app.use(express.static(path.join(__dirname, 'public')));
-
-// Uncomment these lines if you want to use a JSON file
 const filePath = new URL('file://' + path.resolve(__dirname, '../data/contributor.json')).pathname;
 
-import { readFileSync } from 'fs';
+app.get('/', (req: Request, res: Response) => {
+  res.send('Hello, this is your Express server!');
+});
 
-try {
-  const contributorsRaw = readFileSync(filePath, 'utf-8');
-  const contributors = JSON.parse(contributorsRaw);
+app.get('/contributors', (req: Request, res: Response) => {
+  try {
+    // Read and parse the JSON file
+    const contributorsRaw = readFileSync(filePath, 'utf-8');
+    const contributors = JSON.parse(contributorsRaw);
 
-  // Log the parsed JSON data to the terminal
-  console.log('Parsed JSON data:', contributors);
+    // Get query parameters with type-checking
+    const page: number = parseInt(req.query.page as string, 10) || 1;
+    const pageSize: number = parseInt(req.query.page_size as string, 10) || 10;
 
-  // Define a simple route
-  app.get('/', (req, res) => {
-    res.send('Hello, this is your Express server!');
-  });
+    // Calculate start and end indices for pagination
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
 
-  // Uncomment this route if you want to send JSON data
-  app.get('/contributors', (req, res) => {
-    res.json(contributors);
-  });
+    // Get the specified page of contributors
+    const contributorsPage = contributors.slice(startIndex, endIndex);
 
-  // Start the server
-  app.listen(port, () => {
-    console.log(`App listening on http://localhost:${port}`);
-  });
-} catch (error) {
-  console.error('Error reading or parsing contributors.json:', (error as Error).message);
-}
+    // Return the paginated results
+    res.json({
+      page,
+      page_size: pageSize,
+      total_contributors: contributors.length,
+      contributors: contributorsPage,
+    });
+  } catch (error) {
+    console.error('Error reading or parsing contributors.json:', (error as Error).message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`App listening on http://localhost:${port}`);
+});
