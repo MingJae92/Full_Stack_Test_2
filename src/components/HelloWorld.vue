@@ -1,24 +1,28 @@
 <template>
-  <div>
+  <div class="main-container">
     <h1>Contributors</h1>
     <p>Total Contributors: {{ totalContributors }}</p>
-    <ul>
-      <li v-for="contributor in contributors" :key="contributor.author">
-        <h2>{{ contributor.author }}</h2>
-        <p>Total Contributions: {{ contributor.total_contributions }}</p>
-        <p>
-          Clans Contributed To:
+    <ul class="contributors-list">
+      <li v-for="contributor in contributors" :key="contributor.author" class="contributor-item">
+        <div class="column author">
+          <h2>{{ contributor.author }}</h2>
+        </div>
+        <div class="column total-contributions">
+          <p>Total Contributions: {{ contributor.total_contributions }}</p>
+        </div>
+        <div class="column contribution-range">
+          <p>
+            Contribution Range:
+            {{ formatDate(contributor.contribution_range.start) }} -
+            {{ formatDate(contributor.contribution_range.end) }}
+          </p>
+        </div>
+        <div class="column clans-contributed-to">
+          <p>Clans Contributed To:</p>
           <ul>
-            <li v-for="(clan, index) in contributor.clans_contributed_to" :key="index">
-              {{ clan }}
-            </li>
+            <li v-for="(clan, index) in contributor.clans_contributed_to" :key="index">{{ clan }}</li>
           </ul>
-        </p>
-        <p>
-          Contribution Range:
-          {{ formatDate(contributor.contribution_range.start) }} -
-          {{ formatDate(contributor.contribution_range.end) }}
-        </p>
+        </div>
       </li>
     </ul>
   </div>
@@ -57,26 +61,57 @@ export default {
 </script>
 
 <style scoped>
-h1 {
-  font-weight: 500;
-  font-size: 2.6rem;
-  position: relative;
-  top: -10px;
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
 }
 
-h3 {
-  font-size: 1.2rem;
+.main-container {
+  text-align: center;
+  width: 100%; /* Adjust the width as needed */
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.greetings h1,
-.greetings h3 {
+.contributors-list {
+  list-style: none;
+  padding: 0;
+}
+
+.contributor-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  padding: 15px;
+  width: 100%; /* Adjust as needed */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.column {
+  flex: 1;
+  padding: 0 10px;
   text-align: center;
 }
 
-@media (min-width: 1024px) {
-  .greetings h1,
-  .greetings h3 {
-    text-align: left;
+.column h2 {
+  margin: 0;
+}
+
+.column ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 600px) {
+  .contributor-item {
+    flex-direction: column;
   }
 }
 </style>
